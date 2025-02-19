@@ -39,68 +39,59 @@ import mqtt from 'mqtt';
 
 export default {
   name: 'DeviceManager',
-  setup() {
-    const devices = ref([
-      {
-        name: "name 1",
-        mac: "mac 1",
-        status: 'on'
-      },
-      {
-        name: "name 2",
-        mac: "mac2",
-        status: 'on'
-      }
-    ]);
-    let client = null;
-
-    const connectToMQTT = () => {
-      client = mqtt.connect('wss://c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud:8884/mqtt', {
-        username: 'lybaocuong',
-        password: '1234@Abcde',
-      });
-
-      client.on('connect', () => {
-        console.log('Connected to MQTT');
-        this.server_status = "Connected with server"
-        client.subscribe('devices/+/status');
-      });
-
-      client.on('message', (topic, message) => {
-        handleMessage(topic, message.toString());
-      });
-    };
-
-    const handleMessage = (topic, message) => {
-      const macAddress = topic.split('/')[1];
-      const status = JSON.parse(message).status;
-
-      const index = devices.value.findIndex((d) => d.mac === macAddress);
-      if (index >= 0) {
-        devices.value[index].status = status;
-      } else {
-        devices.value.push({ mac: macAddress, status });
-      }
-    };
-
-    const toggleDevice = (device) => {
-      const newStatus = device.status === 'on' ? 'off' : 'on';
-      client.publish(`devices/${device.mac}/control`, JSON.stringify({ status: newStatus }));
-    };
-
-    onMounted(() => {
-      connectToMQTT();
-    });
-
-    return {
-      devices,
-      toggleDevice,
-    };
-  },
   data() {
     return {
-      server_status: "offline"
+      server_status: "offline",
+      devices: [
+        {
+          name: "name 1",
+          mac: "mac 1",
+          status: 'on'
+        }
+      ],
+      client: null,
     }
+  },
+  methods: {
+    connectToMQTT(){
+      this.client = mqtt.connect('wss://c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud:8884/mqtt', {
+        username: 'lybaocuong',
+        password: '1234@Abcd',
+      });
+
+      let _self = this
+
+      this.client.on('connect', () => {
+        console.log('Connected to MQTT');
+        _self.server_status = "Connected with server"
+        _self.client.subscribe('device/+/status');
+        _self.client.subscribe('device/+/switch');
+      });
+
+      this.client.on('message', (topic, message) => {
+        _self.handleMessage(topic, message.toString());
+      });
+    },
+
+    handleMessage(topic, message){
+      const macAddress = topic.split('/')[1];
+      const status = message;
+
+      const index = this.devices.findIndex((d) => d.mac === macAddress);
+      if (index >= 0) {
+        this.devices[index].status = status;
+      } else {
+        this.devices.push({ mac: macAddress, status });
+      }
+    },
+
+    toggleDevice(device) {
+      const newStatus = device.status === 'on' ? 'off' : 'on';
+      client.publish(`devices/${device.mac}/control`, JSON.stringify({ status: newStatus }));
+    }
+  },
+  mounted(){
+    this.connectToMQTT();    
   }
 };
 </script>
