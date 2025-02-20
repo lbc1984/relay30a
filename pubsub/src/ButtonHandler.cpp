@@ -2,9 +2,9 @@
 #include "ButtonHandler.h"
 #include "MQTTHandler.h"
 
-const int relayPin = 14; // GPIO14 cho relay
-const int buttonPin = 4; // GPIO4 cho nút nhấn
-const int ledPin = 2;    // GPIO2 cho LED
+const int relayPin = 14;
+const int buttonPin = 4;
+const int ledPin = 2;
 
 bool relayState = false;
 bool buttonPressed = false;
@@ -29,10 +29,10 @@ void handle_button()
 {
   if (buttonPressed)
   {
-    delay(50);
     bool currentButtonState = digitalRead(buttonPin);
+    delay(50);
 
-    if (currentButtonState == true)
+    if (currentButtonState == HIGH)
     {
       buttonPressed = false;
       unsigned long currentTime = millis();
@@ -43,8 +43,14 @@ void handle_button()
         digitalWrite(ledPin, relayState ? LOW : HIGH);
         lastDebounceTime = currentTime;
 
-        client.publish(topic_switch.c_str(), relayState ? "on" : "off", true);
+        client.publish(topic_switch.c_str(), relayState ? "on" : "off");
       }
     }
   }
+}
+
+void update_switch(String state)
+{
+  digitalWrite(relayPin, state == "on" ? HIGH : LOW);
+  digitalWrite(ledPin, state == "on" ? LOW : HIGH);
 }
