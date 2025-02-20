@@ -22,8 +22,8 @@
               <p><b>Name:</b> {{ device.name }}</p>
               <p><b>MAC:</b> {{ device.mac }}</p>
               <p><b>Status:</b> {{ device.status }}</p>
-              <button @click="toggleDevice(device)">
-                {{ device.status === 'on' ? 'Turn Off' : 'Turn On' }}
+              <button @click="this.toggleDevice(device)">
+                {{ device.status === 'off' ? 'Turn Off' : 'Turn On' }}
               </button>
             </div>
           </div>
@@ -34,7 +34,6 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
 import mqtt from 'mqtt';
 
 export default {
@@ -43,11 +42,6 @@ export default {
     return {
       server_status: "offline",
       devices: [
-        {
-          name: "name 1",
-          mac: "mac 1",
-          status: 'on'
-        }
       ],
       client: null,
     }
@@ -77,6 +71,8 @@ export default {
       const macAddress = topic.split('/')[1];
       const status = message;
 
+      console.log(topic, message)
+
       const index = this.devices.findIndex((d) => d.mac === macAddress);
       if (index >= 0) {
         this.devices[index].status = status;
@@ -86,8 +82,9 @@ export default {
     },
 
     toggleDevice(device) {
-      const newStatus = device.status === 'on' ? 'off' : 'on';
-      client.publish(`devices/${device.mac}/control`, JSON.stringify({ status: newStatus }));
+      device.switch == 'on' ? 'off' : 'on';
+      console.log(`devices/${device.mac}/switch`, device.switch)
+      this.client.publish(`devices/${device.mac}/switch`, device.switch);
     }
   },
   mounted(){

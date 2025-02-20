@@ -5,9 +5,10 @@
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
-String topic_root = "device/" + mac_address;
-String topic_status = topic_root + "/status";
-String topic_switch = topic_root + "/switch";
+String topic_root = "";
+String topic_status = "";
+String topic_switch = "";
+String topic_name = "";
 
 const char *user = "lybaocuong";
 const char *pass = "1234@Abcd";
@@ -18,6 +19,16 @@ void mqtt_setup()
 {
   client.setServer(mqtt_url, mqtt_port);
   client.setCallback(mqttCallback);
+
+  topic_root = "device/" + mac_address;
+  topic_status = topic_root + "/status";
+  topic_switch = topic_root + "/switch";
+  topic_name = topic_root + "/name";
+
+  Serial.println(topic_root);
+  Serial.println(topic_status);
+  Serial.println(topic_switch);
+  Serial.println(topic_name);
 }
 
 void reconnect()
@@ -28,12 +39,13 @@ void reconnect()
   {
     Serial.println("Đang kết nối tới MQTT broker...");
 
-    if (client.connect(mac_address.c_str(), user, pass, topic_status.c_str(), 1, false, "offline"))
+    if (client.connect(mac_address.c_str(), user, pass, topic_status.c_str(), 1, true, "offline"))
     {
       Serial.println("Kết nối thành công!");
       client.subscribe(topic_status.c_str());
       client.subscribe(topic_switch.c_str());
       client.publish(topic_status.c_str(), "online");
+      client.publish(topic_name.c_str(), deviceName.c_str());
     }
     else
     {
@@ -55,6 +67,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     update_switch(message);
 }
 
-void pub_switch(String state){
+void pub_switch(String state)
+{
   client.publish(topic_switch.c_str(), state.c_str());
 }
