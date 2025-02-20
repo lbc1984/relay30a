@@ -9,6 +9,8 @@ void setup()
   setup_wifi();
   mqtt_setup();
   setup_button();
+
+  pub_switch("off");
 }
 
 void loop()

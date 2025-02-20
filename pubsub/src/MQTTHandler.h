@@ -10,5 +10,6 @@ extern String topic_switch;
 
 void mqtt_setup();
 void reconnect();
-
+void mqttCallback(char *topic, byte *payload, unsigned int length);
+void pub_switch(String state);
 #endif
