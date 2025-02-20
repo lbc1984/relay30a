@@ -29,8 +29,8 @@ void handle_button()
 {
   if (buttonPressed)
   {
-    bool currentButtonState = digitalRead(buttonPin);
     delay(50);
+    bool currentButtonState = digitalRead(buttonPin);
 
     if (currentButtonState == HIGH)
     {
