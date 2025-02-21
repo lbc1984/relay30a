@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <h1>Device Management</h1>
+    <h1>Pubsub Management</h1>
 
     <v-container>
       <v-row>
@@ -23,7 +23,7 @@
               <p><b>MAC:</b> {{ device.mac }}</p>
               <p><b>Status:</b> {{ device.status }}</p>
               <button @click="this.toggleDevice(device)">
-                {{ device.status === 'off' ? 'Turn Off' : 'Turn On' }}
+                {{ device.switch === 'on' ? 'Turn On' : 'Turn Off' }}
               </button>
             </div>
           </div>
@@ -47,7 +47,7 @@ export default {
     }
   },
   methods: {
-    connectToMQTT(){
+    connectToMQTT() {
       this.client = mqtt.connect('wss://c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud:8884/mqtt', {
         username: 'lybaocuong',
         password: '1234@Abcd',
@@ -67,28 +67,42 @@ export default {
       });
     },
 
-    handleMessage(topic, message){
-      const macAddress = topic.split('/')[1];
-      const status = message;
+    handleMessage(topic, message) {
+      const topic_split = topic.split('/')
+      const macAddress = topic_split[1];
+      const type = topic_split[2]
 
       console.log(topic, message)
 
       const index = this.devices.findIndex((d) => d.mac === macAddress);
       if (index >= 0) {
-        this.devices[index].status = status;
+        if (type == "status")
+          this.devices[index].status = message
+        else if (type == "switch")
+          this.devices[index].switch = message
       } else {
-        this.devices.push({ mac: macAddress, status });
+        const device = {
+          mac: macAddress,
+          status: type == "status" ? message : "",
+          switch: type == "switch" ? message : ""
+        }
+
+        this.devices.push(device);
       }
     },
 
     toggleDevice(device) {
-      device.switch == 'on' ? 'off' : 'on';
-      console.log(`devices/${device.mac}/switch`, device.switch)
-      this.client.publish(`devices/${device.mac}/switch`, device.switch);
+      // console.log(device)
+      const status_switch = device.switch == "on" ? 'off' : 'on';
+      const item = this.devices.find(x=> x.mac == device.mac)
+      item.switch = status_switch
+
+      // console.log(`device/${device.mac}/switch`, status_switch)
+      this.client.publish(`device/${device.mac}/switch`, status_switch);
     }
   },
-  mounted(){
-    this.connectToMQTT();    
+  mounted() {
+    this.connectToMQTT();
   }
 };
 </script>
