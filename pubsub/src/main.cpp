@@ -3,6 +3,8 @@
 #include "MQTTHandler.h"
 #include "ButtonHandler.h"
 
+bool isStarted = false;
+
 void setup()
 {
   Serial.begin(9600);
@@ -21,4 +23,10 @@ void loop()
   }
   client.loop();
   handle_button();
+
+  if(isStarted == false)
+  {
+    set_switch(0);
+    isStarted = true;
+  } 
 }

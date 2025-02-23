@@ -4,5 +4,6 @@
 void setup_button();
 void handle_button();
 void update_switch(String state = "off");
+void set_switch(bool state);
 
 #endif
