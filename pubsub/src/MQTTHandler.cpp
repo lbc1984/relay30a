@@ -37,6 +37,11 @@ void reconnect()
 
   while (!client.connected())
   {
+    if (WiFi.status() != WL_CONNECTED)
+    {
+      ESP.restart();
+    }
+    
     Serial.println("Đang kết nối tới MQTT broker...");
 
     if (client.connect(mac_address.c_str(), user, pass, topic_status.c_str(), 1, true, "offline"))
@@ -44,7 +49,7 @@ void reconnect()
       Serial.println("Kết nối thành công!");
       client.subscribe(topic_status.c_str());
       client.subscribe(topic_switch.c_str());
-      client.publish(topic_status.c_str(), "online");
+      client.publish(topic_status.c_str(), "online", true);
       client.publish(topic_name.c_str(), deviceName.c_str());
     }
     else
@@ -58,10 +63,10 @@ void reconnect()
 
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
-  Serial.print("Nhận tin nhắn từ topic: ");
-  Serial.println(topic);
-  Serial.print("Nội dung: ");
   String message = String((char *)payload).substring(0, length);
+  Serial.print("Nhận tin nhắn từ topic: ");
+  Serial.print(topic);
+  Serial.println(message);
 
   if (String(topic) == topic_switch)
     update_switch(message);

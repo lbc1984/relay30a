@@ -6,7 +6,7 @@ const int relayPin = 14;
 const int buttonPin = 4;
 const int ledPin = 2;
 
-bool relayState = false;
+bool relayState = 0;
 bool buttonPressed = false;
 unsigned long lastDebounceTime = 0;
 const unsigned long debounceDelay = 50;
@@ -23,13 +23,15 @@ void setup_button()
   pinMode(relayPin, OUTPUT);
   pinMode(ledPin, OUTPUT);
   attachInterrupt(digitalPinToInterrupt(buttonPin), handleButtonPress, FALLING);
+
+  client.publish(topic_switch.c_str(), String(relayState).c_str(), true);
 }
 
 void handle_button()
 {
   if (buttonPressed)
   {
-    delay(50);
+    delay(10);
     bool currentButtonState = digitalRead(buttonPin);
 
     if (currentButtonState == HIGH)
@@ -38,12 +40,8 @@ void handle_button()
       unsigned long currentTime = millis();
       if ((currentTime - lastDebounceTime) > debounceDelay)
       {
-        relayState = !relayState;
-        digitalWrite(relayPin, relayState ? HIGH : LOW);
-        digitalWrite(ledPin, relayState ? LOW : HIGH);
+        set_switch(!relayState);
         lastDebounceTime = currentTime;
-
-        client.publish(topic_switch.c_str(), relayState ? "on" : "off");
       }
     }
   }
@@ -51,6 +49,15 @@ void handle_button()
 
 void update_switch(String state)
 {
-  digitalWrite(relayPin, state == "on" ? HIGH : LOW);
-  digitalWrite(ledPin, state == "on" ? LOW : HIGH);
+  relayState = state == "1" ? HIGH : LOW;
+  digitalWrite(relayPin, relayState);
+  digitalWrite(ledPin, !relayState);
+}
+
+void set_switch(bool state)
+{
+  relayState = state;
+  digitalWrite(relayPin, state);
+  digitalWrite(ledPin, !state);
+  client.publish(topic_switch.c_str(), String(state).c_str(), true);
 }
