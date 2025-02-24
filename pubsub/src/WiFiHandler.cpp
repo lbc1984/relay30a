@@ -2,9 +2,12 @@
 
 String mac_address = "";
 String deviceName = "";
+WiFiClientSecure clientSecure;
+HTTPClient httpClient;
 
 void setup_wifi()
 {
+  clientSecure.setInsecure();
   mac_address = WiFi.macAddress();
   WiFiManager wifiManager;
   wifiManager.setConfigPortalTimeout(60);

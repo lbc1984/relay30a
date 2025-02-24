@@ -1,6 +1,7 @@
 #include "MQTTHandler.h"
 #include "WiFiHandler.h"
 #include "ButtonHandler.h"
+#include <Arduino_JSON.h>
 
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
@@ -9,15 +10,25 @@ String topic_root = "";
 String topic_status = "";
 String topic_switch = "";
 String topic_name = "";
+String url_lambda = "";
 
-const char *user = "lybaocuong";
-const char *pass = "1234@Abcd";
-const char *mqtt_url = "c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud";
-const int mqtt_port = 8883;
+String user = "lybaocuong";
+String pass = "1234@Abcd";
+String mqtt_url = "c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud";
+int mqtt_port = 8883;
 
 void mqtt_setup()
 {
-  client.setServer(mqtt_url, mqtt_port);
+  String json = fetchData();
+  Serial.println("Response json: " + json);
+  JSONVar data = JSON.parse(json);
+
+  mqtt_url = String(data["mqtt_url"]);
+  user = String(data["user"]);
+  pass = String(data["pass"]);
+  mqtt_port = String(data["mqtt_port"]).toInt();
+
+  client.setServer(mqtt_url.c_str(), mqtt_port);
   client.setCallback(mqttCallback);
 
   topic_root = "device/" + mac_address;
@@ -41,10 +52,10 @@ void reconnect()
     {
       ESP.restart();
     }
-    
+
     Serial.println("Đang kết nối tới MQTT broker...");
 
-    if (client.connect(mac_address.c_str(), user, pass, topic_status.c_str(), 1, true, "offline"))
+    if (client.connect(mac_address.c_str(), user.c_str(), pass.c_str(), topic_status.c_str(), 1, true, "offline"))
     {
       Serial.println("Kết nối thành công!");
       client.subscribe(topic_status.c_str());
@@ -75,4 +86,27 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 void pub_switch(String state)
 {
   client.publish(topic_switch.c_str(), state.c_str());
+}
+
+String fetchData()
+{
+  clientSecure.connect(url_lambda, 443);
+  httpClient.begin(clientSecure, url_lambda);
+  int httpCode = httpClient.GET();
+  String payload = "";
+
+  if (httpCode > 0)
+  {
+    payload = httpClient.getString();
+    Serial.println("Response: " + payload);
+  }
+  else
+  {
+    Serial.println("HTTP Error: " + String(httpCode));
+  }
+
+  httpClient.end();
+  clientSecure.stop();
+
+  return payload;
 }
