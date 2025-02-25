@@ -10,12 +10,13 @@ String topic_root = "";
 String topic_status = "";
 String topic_switch = "";
 String topic_name = "";
-String url_lambda = "";
+const String url_lambda = "https://2wbbwg9uw0.execute-api.ap-southeast-1.amazonaws.com/Prod/mqtt";
 
-String user = "lybaocuong";
-String pass = "1234@Abcd";
-String mqtt_url = "c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud";
+String user = "";
+String pass = "";
+String mqtt_url = "";
 int mqtt_port = 8883;
+int count_reconnect = 0;
 
 void mqtt_setup()
 {
@@ -23,10 +24,15 @@ void mqtt_setup()
   Serial.println("Response json: " + json);
   JSONVar data = JSON.parse(json);
 
-  mqtt_url = String(data["mqtt_url"]);
+  mqtt_url = String(data["url"]);
   user = String(data["user"]);
-  pass = String(data["pass"]);
-  mqtt_port = String(data["mqtt_port"]).toInt();
+  pass = String(data["password"]);
+  mqtt_port = String(data["port"]).toInt();
+
+  Serial.println("MQTT URL: " + mqtt_url);
+  Serial.println("MQTT User: " + user);
+  Serial.println("MQTT Password: " + pass);
+  Serial.println("MQTT Port: " + String(mqtt_port));
 
   client.setServer(mqtt_url.c_str(), mqtt_port);
   client.setCallback(mqttCallback);
@@ -62,12 +68,18 @@ void reconnect()
       client.subscribe(topic_switch.c_str());
       client.publish(topic_status.c_str(), "online", true);
       client.publish(topic_name.c_str(), deviceName.c_str());
+      count_reconnect = 0;
     }
     else
     {
       Serial.print("Kết nối thất bại, mã lỗi: ");
       Serial.println(client.state());
       delay(5000);
+      count_reconnect++;
+
+      if(count_reconnect > 5){
+        ESP.restart();
+      }
     }
   }
 }
