@@ -10,7 +10,7 @@ String topic_root = "";
 String topic_status = "";
 String topic_switch = "";
 String topic_name = "";
-const String url_lambda = "https://2wbbwg9uw0.execute-api.ap-southeast-1.amazonaws.com/Prod/mqtt";
+const String url_lambda = "https://6yahrrwera.execute-api.ap-southeast-1.amazonaws.com/default/mqtt";
 
 String user = "";
 String pass = "";

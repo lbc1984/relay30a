@@ -26,3 +26,13 @@ Resources:
           Properties:
             Path: /mqtt
             Method: get
+            RestApiId: !Ref MqttApiGateway
+  MqttApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: "MqttApi"
+      StageName: "Prod"
+      Cors:
+        AllowMethods: "'GET'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
