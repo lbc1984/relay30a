@@ -34,7 +34,10 @@
               </p>
               <p><b>MAC:</b> {{ device.mac }}</p>
               <p><b>Status:</b> {{ device.status }}</p>
-              <button @click="this.toggleDevice(device)" :hidden="device.status === 'offline'">
+              <button
+                @click="this.toggleDevice(device)"
+                :hidden="device.status === 'offline'"
+              >
                 {{ device.switch === "1" ? "Turn On" : "Turn Off" }}
               </button>
             </div>
@@ -47,6 +50,7 @@
 
 <script>
 import mqtt from "mqtt";
+import axios from "axios";
 
 export default {
   name: "DeviceManager",
@@ -59,14 +63,14 @@ export default {
     };
   },
   methods: {
-    connectToMQTT() {
-      this.client = mqtt.connect(
-        "wss://c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud:8884/mqtt",
-        {
-          username: "lybaocuong",
-          password: "1234@Abcd",
-        }
-      );
+    connectToMQTT(url, username, password) {
+      let port = 8884;
+      let url_mqtt = "wss://" + url + ":" + port + "/mqtt";
+
+      this.client = mqtt.connect(url_mqtt, {
+        username: username,
+        password: password,
+      });
 
       let _self = this;
 
@@ -117,7 +121,7 @@ export default {
         retain: true,
       });
     },
-    saveName(device) {      
+    saveName(device) {
       if (this.name_old != device.name)
         this.client.publish(`device/${device.mac}/name`, device.name, {
           qos: 1,
@@ -126,35 +130,22 @@ export default {
     },
   },
   mounted() {
-    this.connectToMQTT();
+    axios
+      .get(
+        "https://6yahrrwera.execute-api.ap-southeast-1.amazonaws.com/default/mqtt"
+      )
+      .then((response) => {
+        console.log(response.data);
+
+        let data = response.data;
+
+        this.connectToMQTT(data.url, data.user, data.password);
+      })
+      .catch((error) => {
+        console.error("Có lỗi xảy ra:", error);
+      });
   },
 };
 </script>
 
-<style scoped>
-.devices {
-  display: flex;
-}
-
-.device-card {
-  border: 1px solid #ccc;
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 250px;
-  margin: 10px;
-}
-
-button {
-  background-color: #4caf50;
-  color: white;
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #45a049;
-}
-</style>
+<style src="@/assets/css/styles.css"></style>

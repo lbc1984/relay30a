@@ -1,20 +1,8 @@
-# Dockerfile
-FROM node:18
-
-# Set working directory
+FROM node:18-alpine
 WORKDIR /app
 
-# Copy package.json từ thư mục cha
-COPY package*.json ./
-
-# Install dependencies
+COPY package.json package-lock.json ./
 RUN npm install
 
-# Copy source code từ thư mục cha
-COPY . .
-
-# Expose port
+# Expose cổng Vite
 EXPOSE 3000
-
-# Start the app
-CMD ["npm", "run", "dev"]
