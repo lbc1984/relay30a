@@ -33,13 +33,13 @@ Resources:
       Name: "MqttApi"
       StageName: "Prod"
       Cors:
-        AllowMethods: "'GET'"
-        AllowHeaders: "'*'"
+        AllowMethods: "'GET,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization'"
         AllowOrigin: "'*'"
   VueS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      # BucketName: mqtt-s3-bucket
+      BucketName: mqtt-fe-s3-bucket
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: index.html

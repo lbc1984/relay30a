@@ -1,10 +1,10 @@
 <template>
   <v-app>
-    <h1>Pubsub Management</h1>
+    <h1>Device Management</h1>
 
     <v-container>
       <v-row>
-        <v-col cols="6" md="6" sm="12">
+        <v-col cols="12" md="6" lg="6">
           <v-table>
             <tbody>
               <tr>
@@ -16,32 +16,27 @@
         </v-col>
       </v-row>
       <v-row>
-        <v-col cols="12">
-          <div class="devices">
-            <div
-              v-for="device in devices"
-              :key="device.mac"
-              class="device-card"
-            >
-              <p>
-                <b>Name:</b>
-                <v-text-field
-                  density="compact"
-                  v-model="device.name"
-                  @blur="saveName(device)"
-                  @focus="name_old = device.name"
-                ></v-text-field>
-              </p>
-              <p><b>MAC:</b> {{ device.mac }}</p>
+        <v-col cols="12" md="6" lg="6" v-for="device in devices" :key="device.mac">
+          <v-card variant="elevated" color="indigo">
+            <template v-slot:title>
+              {{ device.mac }}
+            </template>
+
+            <template v-slot:subtitle>
+              <v-text-field density="compact" v-model="device.name" @blur="saveName(device)" @focus="name_old = device.name"
+                label="Số phòng"></v-text-field>
+            </template>
+
+            <template v-slot:text>
               <p><b>Status:</b> {{ device.status }}</p>
-              <button
-                @click="this.toggleDevice(device)"
-                :hidden="device.status === 'offline'"
-              >
+            </template>
+
+            <template v-slot:actions v-if="device.status !== 'offline'">
+              <v-btn @click="toggleDevice(device)" variant="outlined">
                 {{ device.switch === "1" ? "Turn On" : "Turn Off" }}
-              </button>
-            </div>
-          </div>
+              </v-btn>
+            </template>
+          </v-card>
         </v-col>
       </v-row>
     </v-container>
@@ -132,7 +127,7 @@ export default {
   mounted() {
     axios
       .get(
-        "https://6yahrrwera.execute-api.ap-southeast-1.amazonaws.com/default/mqtt"
+        "https://pclynu18s5.execute-api.ap-southeast-1.amazonaws.com/Prod/mqtt"
       )
       .then((response) => {
         console.log(response.data);
