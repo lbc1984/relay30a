@@ -1,14 +1,19 @@
 <template>
   <v-app>
-    <h1>Device Management</h1>
-
     <v-container>
+      <v-row>
+        <v-col cols="12">
+          <v-toolbar color="primary" dark>
+            <v-toolbar-title class="text-center w-100">Quản lý máy lạnh</v-toolbar-title>
+          </v-toolbar>
+        </v-col>
+      </v-row>
       <v-row>
         <v-col cols="12" md="6" lg="6">
           <v-table>
             <tbody>
               <tr>
-                <td>Trạng thái</td>
+                <td>Server status:</td>
                 <td>{{ this.server_status }}</td>
               </tr>
             </tbody>
@@ -16,7 +21,7 @@
         </v-col>
       </v-row>
       <v-row>
-        <v-col cols="12" md="6" lg="6" v-for="device in devices" :key="device.mac">
+        <v-col cols="12" md="3" lg="3" v-for="device in devices" :key="device.mac">
           <v-card variant="elevated" color="indigo">
             <template v-slot:title>
               {{ device.mac }}
@@ -51,7 +56,7 @@ export default {
   name: "DeviceManager",
   data() {
     return {
-      server_status: "offline",
+      server_status: "Disconnected",
       devices: [],
       client: null,
       name_old: "",
@@ -70,8 +75,7 @@ export default {
       let _self = this;
 
       this.client.on("connect", () => {
-        console.log("Connected to MQTT");
-        _self.server_status = "Connected with server";
+        _self.server_status = "Connected";
         _self.client.subscribe("device/+/name");
         _self.client.subscribe("device/+/status");
         _self.client.subscribe("device/+/switch");
