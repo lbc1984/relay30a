@@ -3,16 +3,12 @@
 #include "MQTTHandler.h"
 #include "ButtonHandler.h"
 
-bool isStarted = false;
-
 void setup()
 {
   Serial.begin(9600);
   setup_wifi();
   mqtt_setup();
   setup_button();
-
-  pub_switch("off");
 }
 
 void loop()
@@ -23,10 +19,4 @@ void loop()
   }
   client.loop();
   handle_button();
-
-  if(isStarted == false)
-  {
-    set_switch(0);
-    isStarted = true;
-  } 
 }

@@ -17,6 +17,7 @@ String pass = "";
 String mqtt_url = "";
 int mqtt_port = 8883;
 int count_reconnect = 0;
+bool isStarted = false;
 
 void mqtt_setup()
 {
@@ -64,7 +65,7 @@ void reconnect()
     if (client.connect(mac_address.c_str(), user.c_str(), pass.c_str(), topic_status.c_str(), 1, true, "offline"))
     {
       Serial.println("Kết nối thành công!");
-      client.subscribe(topic_status.c_str());
+      // client.subscribe(topic_status.c_str());
       client.subscribe(topic_switch.c_str());
       client.publish(topic_status.c_str(), "online", true);
       client.publish(topic_name.c_str(), deviceName.c_str());
@@ -91,8 +92,13 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
   Serial.print(topic);
   Serial.println(message);
 
-  if (String(topic) == topic_switch)
+  if (String(topic) == topic_switch && isStarted == true)
     update_switch(message);
+  else if (isStarted == false)
+  {
+    set_switch(true);
+    isStarted = true;
+  }
 }
 
 void pub_switch(String state)
