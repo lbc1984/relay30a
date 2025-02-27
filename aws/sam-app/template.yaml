@@ -36,3 +36,26 @@ Resources:
         AllowMethods: "'GET'"
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
+  VueS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # BucketName: mqtt-s3-bucket
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref VueS3Bucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${VueS3Bucket}/*"
