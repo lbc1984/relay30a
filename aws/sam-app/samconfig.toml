@@ -13,9 +13,11 @@ parallel = true
 lint = true
 
 [default.deploy.parameters]
+stack_name = "mqtt"
 capabilities = "CAPABILITY_IAM"
-confirm_changeset = true
-resolve_s3 = true
+confirm_changeset = false
+region = "ap-southeast-1"
+s3_bucket = "mqtt-s3-bucket"
 
 [default.package.parameters]
 resolve_s3 = true
