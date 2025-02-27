@@ -6,7 +6,7 @@ const int relayPin = 14;
 const int buttonPin = 4;
 const int ledPin = 2;
 
-bool relayState = 0;
+bool relayState = true;
 bool buttonPressed = false;
 unsigned long lastDebounceTime = 0;
 const unsigned long debounceDelay = 50;
@@ -40,7 +40,7 @@ void handle_button()
       unsigned long currentTime = millis();
       if ((currentTime - lastDebounceTime) > debounceDelay)
       {
-        set_switch(!relayState);
+        set_switch(relayState);
         lastDebounceTime = currentTime;
       }
     }
@@ -49,15 +49,15 @@ void handle_button()
 
 void update_switch(String state)
 {
-  relayState = state == "1" ? HIGH : LOW;
+  relayState = state == "0" ? HIGH : LOW;
   digitalWrite(relayPin, relayState);
-  digitalWrite(ledPin, !relayState);
+  digitalWrite(ledPin, relayState);
 }
 
 void set_switch(bool state)
 {
   relayState = state;
-  digitalWrite(relayPin, state);
-  digitalWrite(ledPin, !state);
-  client.publish(topic_switch.c_str(), String(state).c_str(), true);
+  digitalWrite(relayPin, !relayState);
+  digitalWrite(ledPin, !relayState);
+  client.publish(topic_switch.c_str(), String(relayState).c_str(), true);
 }
