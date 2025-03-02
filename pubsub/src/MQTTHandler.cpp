@@ -10,7 +10,8 @@ String topic_root = "";
 String topic_status = "";
 String topic_switch = "";
 String topic_name = "";
-const String url_lambda = "https://pclynu18s5.execute-api.ap-southeast-1.amazonaws.com/Prod/mqtt";
+String topic_reset = "";
+const String url_lambda = "https://mqtt.sieuthitiendung.com/mqtt";
 
 String user = "";
 String pass = "";
@@ -42,11 +43,12 @@ void mqtt_setup()
   topic_status = topic_root + "/status";
   topic_switch = topic_root + "/switch";
   topic_name = topic_root + "/name";
+  topic_reset = topic_root + "/reset";
 
-  Serial.println(topic_root);
-  Serial.println(topic_status);
-  Serial.println(topic_switch);
-  Serial.println(topic_name);
+  // Serial.println(topic_root);
+  // Serial.println(topic_status);
+  // Serial.println(topic_switch);
+  // Serial.println(topic_name);
 }
 
 void reconnect()
@@ -67,6 +69,7 @@ void reconnect()
       Serial.println("Kết nối thành công!");
       // client.subscribe(topic_status.c_str());
       client.subscribe(topic_switch.c_str());
+      client.subscribe(topic_reset.c_str());
       client.publish(topic_status.c_str(), "online", true);
       client.publish(topic_name.c_str(), deviceName.c_str());
       count_reconnect = 0;
@@ -99,6 +102,11 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     set_switch(true);
     isStarted = true;
   }
+  else if(String(topic) == topic_reset && message == "lbc")
+  {
+    wifiManager.resetSettings();
+    ESP.restart();
+  }
 }
 
 void pub_switch(String state)
@@ -110,6 +118,8 @@ String fetchData()
 {
   clientSecure.connect(url_lambda, 443);
   httpClient.begin(clientSecure, url_lambda);
+  httpClient.addHeader("X-Device-MAC", mac_address);
+
   int httpCode = httpClient.GET();
   String payload = "";
 

@@ -10,6 +10,7 @@ extern String mac_address;
 extern String deviceName;
 extern WiFiClientSecure clientSecure;
 extern HTTPClient httpClient;
+extern WiFiManager wifiManager;
 
 void setup_wifi();
 

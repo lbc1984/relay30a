@@ -1,14 +1,31 @@
 import json
 import firebase_admin
-from firebase_admin import auth, credentials
+from firebase_admin import auth, credentials, firestore
+import boto3
+import os
 
-# Khởi tạo Firebase Admin SDK với serviceAccountKey.json
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
+BUCKET_NAME = os.environ['BUCKET_NAME']
+FILE_NAME = os.environ['FILE_NAME']
 
-# Danh sách email được phép truy cập
-ALLOWED_USERS = ["lybaocuong@gmail.com", "ngochavina@gmail.com"]
+def get_allowed_users():
+    db = firestore.client()
+    doc_ref = db.collection("allowed_users").document("list")
+    doc = doc_ref.get()
+    if doc.exists:
+        return doc.to_dict().get("emails", [])
+    return []
 
+def get_service_account_key():
+    s3 = boto3.client("s3")
+    file_obj = s3.get_object(Bucket=BUCKET_NAME, Key=FILE_NAME)
+    file_content = file_obj["Body"].read().decode("utf-8")
+    return json.loads(file_content)
+
+# Khởi tạo Firebase Admin SDK với serviceAccountKey từ S3
+if not firebase_admin._apps:
+    service_account_json = get_service_account_key()
+    cred = credentials.Certificate(service_account_json)
+    firebase_admin.initialize_app(cred)
 
 def lambda_handler(event, context):
 
@@ -36,10 +53,10 @@ def lambda_handler(event, context):
 
     try:
         decoded_token = auth.verify_id_token(id_token)
-        uid = decoded_token["uid"]
         email = decoded_token.get("email")
-
-        if email not in ALLOWED_USERS:
+        allowed_emails = get_allowed_users()
+        
+        if email not in allowed_emails:
             return {
                 "statusCode": 403,
                 "body": json.dumps({"error": "Forbidden", "message": "Email không được phép truy cập"})

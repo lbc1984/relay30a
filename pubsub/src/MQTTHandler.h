@@ -7,6 +7,7 @@
 extern PubSubClient client;
 extern String topic_status;
 extern String topic_switch;
+extern String topic_reset;
 
 void mqtt_setup();
 void reconnect();
