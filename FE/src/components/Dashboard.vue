@@ -62,7 +62,6 @@
 <script>
 import mqtt from "mqtt";
 import axios from "axios";
-import { useRouter } from "vue-router";
 
 export default {
   name: "Dashboard",
@@ -141,9 +140,9 @@ export default {
   mounted() {
     const token = localStorage.getItem("google_access_token");
     if (!token) {
-      const router = useRouter();
-      router.push("/login")
+      this.$router.push("/login")
     }
+
     axios
       .get(
         "https://pclynu18s5.execute-api.ap-southeast-1.amazonaws.com/Prod/mqtt",
@@ -152,12 +151,12 @@ export default {
         }
       )
       .then((response) => {
-        console.log(response.data);
         let data = response.data;
         this.connectToMQTT(data.url, data.user, data.password);
       })
       .catch((error) => {
         console.error("Có lỗi xảy ra:", error);
+        this.$router.push("/login")
       });
   },
 };

@@ -1,10 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Dashboard from "../components/Dashboard.vue";
-import AuthCallback from "../components/AuthCallback.vue";
 import Login from "../components/Login.vue";
 const routes = [
   { path: "/", component: Dashboard, meta: { requiresAuth: true } },
-  { path: "/auth/callback", component: AuthCallback },
   {path: "/login", component: Login},
 ];
 

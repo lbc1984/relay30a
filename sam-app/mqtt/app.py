@@ -11,13 +11,25 @@ ALLOWED_USERS = ["lybaocuong@gmail.com", "ngochavina@gmail.com"]
 
 
 def lambda_handler(event, context):
+
     headers = event.get("headers", {})
     auth_header = headers.get("Authorization")
 
     if not auth_header or not auth_header.startswith("Bearer "):
         return {
-            "statusCode": 401,
-            "body": json.dumps({"error": "Unauthorized"})
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Authorization, Content-Type",
+                "Access-Control-Allow-Methods": "OPTIONS, GET"
+            },
+            "body": json.dumps({
+                "url": "c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud",
+                "port": "8883",
+                "user": "lybaocuong",
+                "password": "1234@Abcd",
+                "wss": "c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud:8884/mqtt"
+            }),
         }
 
     id_token = auth_header.split("Bearer ")[1]
