@@ -23,3 +23,5 @@ pnpm-debug.log*
 
 sam-app/.aws-sam/
 .vite/
+
+seviceAccountKey.json
