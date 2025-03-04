@@ -1,0 +1,14 @@
+.spinner_dashboard {
+    width: 120px;
+    height: 120px;
+    border: 50px solid rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    border-top-color: green;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }

@@ -3,9 +3,7 @@
     <v-row>
       <v-col cols="12">
         <v-toolbar color="primary" dark>
-          <v-toolbar-title class="text-center w-100"
-            >Quản lý máy lạnh</v-toolbar-title
-          >
+          <v-toolbar-title class="text-center w-100">Quản lý thiết bị</v-toolbar-title>
         </v-toolbar>
       </v-col>
     </v-row>
@@ -22,26 +20,22 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col
-        cols="12"
-        md="3"
-        lg="3"
-        v-for="device in devices"
-        :key="device.mac"
-      >
+      <v-col cols="12">
+        <v-divider>Danh sách thiết bị</v-divider>
+      </v-col>
+      <v-col cols="12" class="d-flex justify-center align-center" style="height: 50vh;" v-if="is_loading">
+        <div class="spinner_dashboard"></div>
+      </v-col>
+      
+      <v-col cols="12" md="3" lg="3" v-for="device in devices" :key="device.mac" v-if="!is_loading">
         <v-card variant="elevated" color="indigo">
           <template v-slot:title>
             {{ device.mac }}
           </template>
 
           <template v-slot:subtitle>
-            <v-text-field
-              density="compact"
-              v-model="device.name"
-              @blur="saveName(device)"
-              @focus="name_old = device.name"
-              label="Số phòng"
-            ></v-text-field>
+            <v-text-field density="compact" v-model="device.name" @blur="saveName(device)" @focus="name_old = device.name"
+              label="Số phòng"></v-text-field>
           </template>
 
           <template v-slot:text>
@@ -57,7 +51,10 @@
       </v-col>
     </v-row>
   </v-container>
+
 </template>
+
+<style src="@/assets/css/dashboard.css"></style>
 
 <script>
 import mqtt from "mqtt";
@@ -73,6 +70,7 @@ export default {
       devices: [],
       client: null,
       name_old: "",
+      is_loading: true,
     };
   },
   methods: {
@@ -153,6 +151,7 @@ export default {
       .then((response) => {
         let data = response.data;
         this.connectToMQTT(data.url, data.user, data.password);
+        this.is_loading = false;
       })
       .catch((error) => {
         console.error("Có lỗi xảy ra:", error);
