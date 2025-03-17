@@ -3,9 +3,11 @@ import firebase_admin
 from firebase_admin import auth, credentials, firestore
 import boto3
 import os
+import requests
 
 BUCKET_NAME = os.environ['BUCKET_NAME']
 FILE_NAME = os.environ['FILE_NAME']
+
 
 def get_allowed_users():
     db = firestore.client()
@@ -15,11 +17,48 @@ def get_allowed_users():
         return doc.to_dict().get("emails", [])
     return []
 
+
+def get_service_mqtt():
+    return {
+        "statusCode": 200,
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Authorization, Content-Type",
+            "Access-Control-Allow-Methods": "OPTIONS, GET"
+        },
+        "body": json.dumps({
+            "url": "c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud",
+            "port": "8883",
+            "user": "lybaocuong",
+            "password": "1234@Abcd",
+            "wss": "c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud:8884/mqtt"
+        }),
+    }
+
+def send_viber(message_text):
+    lambda_url = "https://dbl7hxnfzt5jjfpbbnd4lk3mgy0viejv.lambda-url.ap-south-1.on.aws/"
+    payload = {
+        "receiverId": "rc+eiS+JAFLl3CxRpznfIg==",
+        "messageText": message_text,
+        "botName": "Manager Device"
+    }
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.post(lambda_url, data=json.dumps(payload), headers=headers)
+        return response.json()  # Trả về phản hồi từ API Lambda
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
+
+
 def get_service_account_key():
     s3 = boto3.client("s3")
     file_obj = s3.get_object(Bucket=BUCKET_NAME, Key=FILE_NAME)
     file_content = file_obj["Body"].read().decode("utf-8")
     return json.loads(file_content)
+
 
 # Khởi tạo Firebase Admin SDK với serviceAccountKey từ S3
 if not firebase_admin._apps:
@@ -27,59 +66,40 @@ if not firebase_admin._apps:
     cred = credentials.Certificate(service_account_json)
     firebase_admin.initialize_app(cred)
 
-def lambda_handler(event, context):
 
+def lambda_handler(event, context):
     headers = event.get("headers", {})
     auth_header = headers.get("Authorization")
+    mac_address = headers.get("X-Device-MAC")
+    result = None
 
-    if not auth_header or not auth_header.startswith("Bearer "):
-        return {
-            "statusCode": 200,
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers": "Authorization, Content-Type",
-                "Access-Control-Allow-Methods": "OPTIONS, GET"
-            },
-            "body": json.dumps({
-                "url": "c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud",
-                "port": "8883",
-                "user": "lybaocuong",
-                "password": "1234@Abcd",
-                "wss": "c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud:8884/mqtt"
-            }),
+    if not auth_header and not mac_address:
+        result = {
+            "statusCode": 401,
+            "body": json.dumps({"error": "Unauthorized", "message": "Authorization header is missing"})
         }
+    elif mac_address:
+        result = get_service_mqtt()
+        send_viber(f"MAC Address: {mac_address} đã truy cập vào hệ thống")
+    elif auth_header:
+        id_token = auth_header.split("Bearer ")[1]
 
-    id_token = auth_header.split("Bearer ")[1]
+        try:
+            decoded_token = auth.verify_id_token(id_token)
+            email = decoded_token.get("email")
+            allowed_emails = get_allowed_users()
 
-    try:
-        decoded_token = auth.verify_id_token(id_token)
-        email = decoded_token.get("email")
-        allowed_emails = get_allowed_users()
-        
-        if email not in allowed_emails:
-            return {
-                "statusCode": 403,
-                "body": json.dumps({"error": "Forbidden", "message": "Email không được phép truy cập"})
+            if email not in allowed_emails:
+                result = {
+                    "statusCode": 403,
+                    "body": json.dumps({"error": "Forbidden", "message": "Email không được phép truy cập"})
+                }
+            else:
+                result = get_service_mqtt()
+        except Exception as e:
+            result = {
+                "statusCode": 401,
+                "body": json.dumps({"error": "Invalid token", "details": str(e)})
             }
 
-        return {
-            "statusCode": 200,
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers": "Authorization, Content-Type",
-                "Access-Control-Allow-Methods": "OPTIONS, GET"
-            },
-            "body": json.dumps({
-                "url": "c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud",
-                "port": "8883",
-                "user": "lybaocuong",
-                "password": "1234@Abcd",
-                "wss": "c812d6ed0a464712b9d2ce6524724c9e.s2.eu.hivemq.cloud:8884/mqtt"
-            }),
-        }
-
-    except Exception as e:
-        return {
-            "statusCode": 401,
-            "body": json.dumps({"error": "Invalid token", "details": str(e)})
-        }
+    return result
