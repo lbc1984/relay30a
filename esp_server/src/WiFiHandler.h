@@ -8,7 +8,8 @@
 
 extern String mac_address;
 extern String deviceName;
-extern WiFiClientSecure clientSecure;
+extern WiFiClient clientSecure;
+extern WiFiClientSecure viberSecure;
 extern HTTPClient httpClient;
 extern WiFiManager wifiManager;
 

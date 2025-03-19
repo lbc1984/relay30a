@@ -6,9 +6,12 @@
 
 extern PubSubClient client;
 extern String topic;
+extern WiFiClientSecure clientSecure;
+// extern WiFiClientSecure viberSecure;
 
 void mqtt_setup();
 void reconnect();
 void mqttCallback(char *topic, byte *payload, unsigned int length);
 String fetchData();
+void Viber_Post(String message);
 #endif

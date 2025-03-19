@@ -2,8 +2,7 @@
 #include "WiFiHandler.h"
 #include <Arduino_JSON.h>
 
-WiFiClientSecure espClient;
-PubSubClient client(espClient);
+PubSubClient client(clientSecure);
 
 String topic = "";
 const String url_lambda = "https://mqtt.sieuthitiendung.com/mqtt";
@@ -28,14 +27,12 @@ void mqtt_setup()
 
   client.setServer(mqtt_url.c_str(), mqtt_port);
   client.setCallback(mqttCallback);
-
+  
   topic = "device/#";
 }
 
 void reconnect()
 {
-  espClient.setInsecure();
-
   while (!client.connected())
   {
     if (WiFi.status() != WL_CONNECTED)
@@ -73,18 +70,9 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
   Serial.print(topic);
   Serial.println(message);
 
-  if (String(topic) == topic_switch && isStarted == true)
-    update_switch(message);
-  else if (isStarted == false)
-  {
-    set_switch(true);
-    isStarted = true;
-  }
-  else if (String(topic) == topic_reset && message == "lbc")
-  {
-    wifiManager.resetSettings();
-    ESP.restart();
-  }
+  String msg_viber = String(topic) + ": " + message;
+
+  Viber_Post(msg_viber);
 }
 
 String fetchData()
@@ -110,4 +98,31 @@ String fetchData()
   clientSecure.stop();
 
   return payload;
+}
+
+void Viber_Post(String message)
+{
+    String name = "Server Device";
+    String receiver = "rc+eiS+JAFLl3CxRpznfIg==";
+
+    JSONVar myJson;
+    myJson["receiverId"] = receiver;
+    myJson["messageText"] = message;
+    myJson["botName"] = name;
+
+    String jsonString = JSON.stringify(myJson);
+    Serial.println("📨 JSON gửi đi: " + jsonString);
+
+    WiFiClientSecure viberSecure;
+    viberSecure.setInsecure();
+    const char *url_send_message = "https://dbl7hxnfzt5jjfpbbnd4lk3mgy0viejv.lambda-url.ap-south-1.on.aws";
+
+    viberSecure.connect(url_send_message, 443);
+    httpClient.begin(viberSecure, url_send_message);
+    httpClient.addHeader("Content-Type", "application/json");
+
+    int result = httpClient.POST(JSON.stringify(myJson));    
+    Serial.println("Result viber: " + String(result));
+    httpClient.end();
+    viberSecure.stop();
 }
