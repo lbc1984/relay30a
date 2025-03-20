@@ -20,10 +20,10 @@ void mqtt_setup()
   Serial.println("Response json: " + json);
   JSONVar data = JSON.parse(json);
 
-  mqtt_url = String(data["url"]);
-  user = String(data["user"]);
-  pass = String(data["password"]);
-  mqtt_port = String(data["port"]).toInt();
+  mqtt_url = JSON.stringify(data["url"]);
+  user = JSON.stringify(data["user"]);
+  pass = JSON.stringify(data["password"]);
+  mqtt_port = JSON.stringify(data["port"]).toInt();
 
   client.setServer(mqtt_url.c_str(), mqtt_port);
   client.setCallback(mqttCallback);
@@ -77,7 +77,6 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 
 String fetchData()
 {
-  clientSecure.connect(url_lambda, 443);
   httpClient.begin(clientSecure, url_lambda);
   httpClient.addHeader("X-Device-MAC", mac_address);
 
@@ -113,12 +112,10 @@ void Viber_Post(String message)
     String jsonString = JSON.stringify(myJson);
     Serial.println("📨 JSON gửi đi: " + jsonString);
 
-    WiFiClientSecure viberSecure;
-    viberSecure.setInsecure();
     const char *url_send_message = "https://dbl7hxnfzt5jjfpbbnd4lk3mgy0viejv.lambda-url.ap-south-1.on.aws";
 
-    viberSecure.connect(url_send_message, 443);
-    httpClient.begin(viberSecure, url_send_message);
+    httpClient.begin(clientSecure, url_lambda);
+    httpClient.begin(viberSecure, url_send_message, 443);
     httpClient.addHeader("Content-Type", "application/json");
 
     int result = httpClient.POST(JSON.stringify(myJson));    

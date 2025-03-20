@@ -1,17 +1,13 @@
 #ifndef WIFI_HANDLER_H
 #define WIFI_HANDLER_H
 
-#include <ESP8266WiFi.h>
-#include <WiFiManager.h>
+#include <HTTPClient.h>
 #include <WiFiClientSecure.h>
-#include <ESP8266HTTPClient.h>
 
-extern String mac_address;
-extern String deviceName;
-extern WiFiClient clientSecure;
+extern String mac_address, deviceName;
+extern WiFiClientSecure clientSecure, viberSecure;
 extern WiFiClientSecure viberSecure;
 extern HTTPClient httpClient;
-extern WiFiManager wifiManager;
 
 void setup_wifi();
 

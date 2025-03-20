@@ -1,14 +1,15 @@
 #include "WiFiHandler.h"
+#include <ESP_WiFiManager.h>
 
-String mac_address = "";
-String deviceName = "";
-WiFiClientSecure clientSecure;
+String mac_address = "", deviceName = "";
+WiFiClientSecure clientSecure, viberSecure;
 HTTPClient httpClient;
-WiFiManager wifiManager;
+ESP_WiFiManager wifiManager;
 
 void setup_wifi()
 {
   clientSecure.setInsecure();
+  viberSecure.setInsecure();
   mac_address = WiFi.macAddress();
 
   wifiManager.setConfigPortalTimeout(60);
