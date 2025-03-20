@@ -1,15 +1,22 @@
 #include "WiFiHandler.h"
-#include <ESP_WiFiManager.h>
+#include <WiFiManager.h>
+#include "ca_cert.h"
 
-String mac_address = "", deviceName = "";
-WiFiClientSecure clientSecure, viberSecure;
+String mac_address = "";
+String deviceName = "";
+WiFiClientSecure clientSecure;
+WiFiClientSecure viberSecure;
+WiFiClientSecure mqttSecure;
 HTTPClient httpClient;
-ESP_WiFiManager wifiManager;
+WiFiManager wifiManager;
 
 void setup_wifi()
 {
   clientSecure.setInsecure();
   viberSecure.setInsecure();
+  // mqttSecure.setCACert(root_ca);
+  mqttSecure.setInsecure();
+
   mac_address = WiFi.macAddress();
 
   wifiManager.setConfigPortalTimeout(60);

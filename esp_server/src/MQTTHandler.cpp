@@ -2,7 +2,7 @@
 #include "WiFiHandler.h"
 #include <Arduino_JSON.h>
 
-PubSubClient client(clientSecure);
+PubSubClient client(mqttSecure);
 
 String topic = "";
 const String url_lambda = "https://mqtt.sieuthitiendung.com/mqtt";
@@ -17,7 +17,6 @@ bool isStarted = false;
 void mqtt_setup()
 {
   String json = fetchData();
-  Serial.println("Response json: " + json);
   JSONVar data = JSON.parse(json);
 
   mqtt_url = JSON.stringify(data["url"]);

@@ -2,11 +2,12 @@
 #define WIFI_HANDLER_H
 
 #include <HTTPClient.h>
-#include <WiFiClientSecure.h>
 
-extern String mac_address, deviceName;
-extern WiFiClientSecure clientSecure, viberSecure;
+extern String mac_address;
+extern String deviceName;
+extern WiFiClientSecure clientSecure;
 extern WiFiClientSecure viberSecure;
+extern WiFiClientSecure mqttSecure;
 extern HTTPClient httpClient;
 
 void setup_wifi();
