@@ -6,7 +6,6 @@
 extern String mac_address;
 extern String deviceName;
 extern WiFiClientSecure clientSecure;
-extern WiFiClientSecure viberSecure;
 extern WiFiClientSecure mqttSecure;
 extern HTTPClient httpClient;
 

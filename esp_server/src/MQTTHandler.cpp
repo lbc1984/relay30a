@@ -6,6 +6,7 @@ PubSubClient client(mqttSecure);
 
 String topic = "";
 const String url_lambda = "https://mqtt.sieuthitiendung.com/mqtt";
+const char *url_send_message = "https://dbl7hxnfzt5jjfpbbnd4lk3mgy0viejv.lambda-url.ap-south-1.on.aws";
 
 String user = "";
 String pass = "";
@@ -19,14 +20,14 @@ void mqtt_setup()
   String json = fetchData();
   JSONVar data = JSON.parse(json);
 
-  mqtt_url = JSON.stringify(data["url"]);
-  user = JSON.stringify(data["user"]);
-  pass = JSON.stringify(data["password"]);
-  mqtt_port = JSON.stringify(data["port"]).toInt();
+  mqtt_url = String((const char *)data["url"]);
+  user = String((const char *)data["user"]);
+  pass = String((const char *)data["password"]);
+  mqtt_port = String((const char *)data["port"]).toInt();
 
   client.setServer(mqtt_url.c_str(), mqtt_port);
   client.setCallback(mqttCallback);
-  
+
   topic = "device/#";
 }
 
@@ -100,25 +101,22 @@ String fetchData()
 
 void Viber_Post(String message)
 {
-    String name = "Server Device";
-    String receiver = "rc+eiS+JAFLl3CxRpznfIg==";
+  String name = "Server Device";
+  String receiver = "rc+eiS+JAFLl3CxRpznfIg==";
 
-    JSONVar myJson;
-    myJson["receiverId"] = receiver;
-    myJson["messageText"] = message;
-    myJson["botName"] = name;
+  JSONVar myJson;
+  myJson["receiverId"] = receiver;
+  myJson["messageText"] = message;
+  myJson["botName"] = name;
 
-    String jsonString = JSON.stringify(myJson);
-    Serial.println("📨 JSON gửi đi: " + jsonString);
+  String jsonString = JSON.stringify(myJson);
+  Serial.println("📨 JSON gửi đi: " + jsonString);
 
-    const char *url_send_message = "https://dbl7hxnfzt5jjfpbbnd4lk3mgy0viejv.lambda-url.ap-south-1.on.aws";
+  httpClient.begin(clientSecure, url_send_message);
+  httpClient.addHeader("Content-Type", "application/json");
 
-    httpClient.begin(clientSecure, url_lambda);
-    httpClient.begin(viberSecure, url_send_message, 443);
-    httpClient.addHeader("Content-Type", "application/json");
-
-    int result = httpClient.POST(JSON.stringify(myJson));    
-    Serial.println("Result viber: " + String(result));
-    httpClient.end();
-    viberSecure.stop();
+  int result = httpClient.POST(JSON.stringify(myJson));
+  Serial.println("Result viber: " + String(result));
+  httpClient.end();
+  clientSecure.stop();
 }
