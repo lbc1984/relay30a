@@ -6,7 +6,7 @@ PubSubClient client(mqttSecure);
 
 String topic = "";
 const String url_lambda = "https://mqtt.sieuthitiendung.com/mqtt";
-const char *url_send_message = "https://dbl7hxnfzt5jjfpbbnd4lk3mgy0viejv.lambda-url.ap-south-1.on.aws";
+const char *url_send_message = "https://mqtt.sieuthitiendung.com/viber";
 
 String user = "";
 String pass = "";
