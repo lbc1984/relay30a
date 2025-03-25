@@ -59,6 +59,7 @@
 <script>
 import mqtt from "mqtt";
 import axios from "axios";
+import {jwtDecode} from "jwt-decode";
 
 export default {
   name: "Dashboard",
@@ -143,18 +144,19 @@ export default {
 
     axios
       .get(
-        "https://pclynu18s5.execute-api.ap-southeast-1.amazonaws.com/Prod/mqtt",
+        "https://mqtt.sieuthitiendung.com/mqtt",
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }
         }
       )
-      .then((response) => {
-        let data = response.data;
+      .then((response) => {        
+        const token = response.headers["x-data"];
+        const data = jwtDecode(token)
+        
         this.connectToMQTT(data.url, data.user, data.password);
         this.is_loading = false;
       })
       .catch((error) => {
-        console.error("Có lỗi xảy ra:", error);
         this.$router.push("/login")
       });
   },
