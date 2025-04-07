@@ -8,7 +8,7 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="12" md="6" lg="6">
+      <v-col cols="12" md="3" lg="3" sm="4">
         <v-table>
           <tbody>
             <tr>
@@ -23,35 +23,41 @@
       <v-col cols="12">
         <v-divider>Danh sách thiết bị</v-divider>
       </v-col>
-      <v-col cols="12" class="d-flex justify-center align-center" style="height: 50vh;" v-if="is_loading">
+      <v-col cols="12" class="d-flex justify-center align-center" style="height: 50vh" v-if="is_loading">
         <div class="spinner_dashboard"></div>
       </v-col>
-      
-      <v-col cols="12" md="3" lg="3" v-for="device in devices" :key="device.mac" v-if="!is_loading">
+
+      <v-col cols="12" md="4" lg="3" sm="6" v-for="device in devices" :key="device.mac" v-if="!is_loading">
         <v-card variant="elevated" color="indigo">
           <template v-slot:title>
             {{ device.mac }}
           </template>
 
           <template v-slot:subtitle>
-            <v-text-field density="compact" v-model="device.name" @blur="saveName(device)" @focus="name_old = device.name"
-              label="Số phòng"></v-text-field>
+            <v-text-field density="compact" v-model="device.name" @blur="saveName(device)"
+              @focus="name_old = device.name" label="Số phòng"></v-text-field>
           </template>
 
           <template v-slot:text>
             <p><b>Status:</b> {{ device.status }}</p>
           </template>
 
-          <template v-slot:actions v-if="device.status !== 'offline'">
-            <v-btn @click="toggleDevice(device)" variant="outlined">
-              {{ device.switch === "1" ? "Turn On" : "Turn Off" }}
-            </v-btn>
+          <template v-slot:actions v-if="device.status == 'offline'">
+            <div class="d-flex justify-space-between w-100">
+              <v-btn class="mt-2" @click="toggleDevice(device)" variant="tonal">
+                {{ device.switch === "1" ? "Turn On" : "Turn Off" }}
+              </v-btn>
+              <v-btn class="mt-2" variant="tonal" @click="openScheduleDialog(device)">
+                Timer
+              </v-btn>
+            </div>
           </template>
         </v-card>
       </v-col>
     </v-row>
-  </v-container>
 
+    <DialogTimer :device="device" :show="show_schedule" @close="closeScheduleDialog" />
+  </v-container>
 </template>
 
 <style src="@/assets/css/dashboard.css"></style>
@@ -59,12 +65,12 @@
 <script>
 import mqtt from "mqtt";
 import axios from "axios";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
+import DialogTimer from "./DialogTimer.vue";
 
 export default {
   name: "Dashboard",
-  setup(){
-  },
+  setup() { },
   data() {
     return {
       server_status: "Disconnected",
@@ -72,7 +78,12 @@ export default {
       client: null,
       name_old: "",
       is_loading: true,
+      device: null,
+      show_schedule: false,
     };
+  },
+  components: {
+    DialogTimer,
   },
   methods: {
     connectToMQTT(url, username, password) {
@@ -135,29 +146,34 @@ export default {
           retain: true,
         });
     },
+    openScheduleDialog(device) {
+      this.device = device;
+      this.show_schedule = true;
+    },
+    closeScheduleDialog() {
+      this.show_schedule = false;
+      this.device = null;
+    },
   },
   mounted() {
     const token = localStorage.getItem("google_access_token");
     if (!token) {
-      this.$router.push("/login")
+      this.$router.push("/login");
     }
 
     axios
-      .get(
-        "https://mqtt.sieuthitiendung.com/mqtt",
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      )
-      .then((response) => {        
+      .get("https://mqtt.sieuthitiendung.com/mqtt", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(async (response) => {
         const token = response.headers["x-data"];
-        const data = jwtDecode(token)
-        
+        const data = jwtDecode(token);
+
         this.connectToMQTT(data.url, data.user, data.password);
         this.is_loading = false;
       })
       .catch((error) => {
-        this.$router.push("/login")
+        this.$router.push("/login");
       });
   },
 };
