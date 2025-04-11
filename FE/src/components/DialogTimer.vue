@@ -135,36 +135,54 @@ export default {
                 return;
             }
 
-            if (this.scheduleForm.length == 0) {
-                this.showMessage("Không có schedule nào");
-            }
-            else {
-                const mac = this.selectedDevice.mac.toLowerCase().replace(/:/g, "");
-                const scheduleRef = ref(db, 'schedule/' + mac);
+            const mac = this.selectedDevice.mac.toLowerCase().replace(/:/g, "");
+            const scheduleRef = ref(db, 'schedule/' + mac);
 
-                try {
-                    await set(scheduleRef, { events: this.scheduleForm });
-                    this.deviceSchedules[mac].event = this.scheduleForm;
-                    this.cancelDialog();
-                    this.showMessage("Lưu schedules thành công");
-                } catch (err) {
-                    this.showMessage("Lỗi khi lưu schedules");
-                    console.error("Lỗi khi lưu schedule:", err);
+            try {
+                const cleanSchedule = this.scheduleForm.map(item => {
+                    const { timeMenu, ...rest } = item;
+                    return rest;
+                });
+
+                console.log(cleanSchedule);
+
+                await set(scheduleRef, { events: cleanSchedule });
+                if (!this.deviceSchedules[mac]) {
+                    this.deviceSchedules[mac] = { events: [] };
                 }
-            }
 
-        }
-        ,
+                this.deviceSchedules[mac].events = this.scheduleForm.map(item => ({
+                    ...item,
+                    timeMenu: false
+                }));
+                this.cancelDialog();
+                this.showMessage("Lưu schedules thành công");
+            } catch (err) {
+                this.showMessage("Lỗi khi lưu schedules");
+                console.error("Lỗi khi lưu schedule:", err);
+            }
+        },
         listenToSchedules() {
             const schedulesRef = ref(db, 'schedule');
 
             onValue(schedulesRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    const schedules = snapshot.val() || {};
-                    this.deviceSchedules = schedules;
-                }
-            });
+                if (!snapshot.exists()) return;
 
+                const schedules = snapshot.val() || {};
+
+                this.deviceSchedules = Object.fromEntries(
+                    Object.entries(schedules).map(([deviceId, deviceData]) => [
+                        deviceId,
+                        {
+                            events: (deviceData.events || []).map(item => ({
+                                ...item,
+                                timeMenu: false
+                            }))
+                        }
+                    ])
+                );
+
+            });
         },
         cancelDialog() {
             this.dialog = false;
@@ -189,8 +207,7 @@ export default {
                     return h1 * 60 + m1 - (h2 * 60 + m2);
                 });
             }
-        }
-        ,
+        },
         clearDayError(index) {
             if (this.scheduleErrors[index]) this.scheduleErrors[index].day = false;
         },
