@@ -2,7 +2,7 @@
 #include "WiFiHandler.h"
 #include <Arduino_JSON.h>
 
-PubSubClient client(mqttSecure);
+PubSubClient client_mqtt(mqttSecure);
 
 String topic = "";
 const String url_lambda = "https://mqtt.sieuthitiendung.com/mqtt";
@@ -25,15 +25,15 @@ void mqtt_setup()
   pass = String((const char *)data["password"]);
   mqtt_port = String((const char *)data["port"]).toInt();
 
-  client.setServer(mqtt_url.c_str(), mqtt_port);
-  client.setCallback(mqttCallback);
+  client_mqtt.setServer(mqtt_url.c_str(), mqtt_port);
+  client_mqtt.setCallback(mqttCallback);
 
   topic = "device/#";
 }
 
 void reconnect()
 {
-  while (!client.connected())
+  while (!client_mqtt.connected())
   {
     if (WiFi.status() != WL_CONNECTED)
     {
@@ -42,16 +42,16 @@ void reconnect()
 
     Serial.println("Đang kết nối tới MQTT broker...");
 
-    if (client.connect("ESP_Server", user.c_str(), pass.c_str()))
+    if (client_mqtt.connect("ESP_Server", user.c_str(), pass.c_str()))
     {
       Serial.println("Kết nối thành công!");
-      client.subscribe(topic.c_str());
+      client_mqtt.subscribe(topic.c_str());
       count_reconnect = 0;
     }
     else
     {
       Serial.print("Kết nối thất bại, mã lỗi: ");
-      Serial.println(client.state());
+      Serial.println(client_mqtt.state());
       delay(5000);
       count_reconnect++;
 
@@ -72,7 +72,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 
   String msg_viber = String(topic) + ": " + message;
 
-  Viber_Post(msg_viber);
+  // Viber_Post(msg_viber);
 }
 
 String fetchData()

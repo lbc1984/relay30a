@@ -44,11 +44,6 @@ void mqtt_setup()
   topic_switch = topic_root + "/switch";
   topic_name = topic_root + "/name";
   topic_reset = topic_root + "/reset";
-
-  // Serial.println(topic_root);
-  // Serial.println(topic_status);
-  // Serial.println(topic_switch);
-  // Serial.println(topic_name);
 }
 
 void reconnect()
