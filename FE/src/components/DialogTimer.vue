@@ -67,7 +67,7 @@ export default {
             scheduleForm: [{ day: '', time: '', action: 'ON', timeMenu: false }],
             deviceSchedules: {},
             scheduleErrors: [],
-            daysOfWeek: ['2', '3', '4', '5', '6', '7', 'CN'],
+            daysOfWeek: ['1', '2', '3', '4', '5', '6', '7'],
             snackbar: false,
             message: "",
         };
@@ -113,7 +113,6 @@ export default {
             this.scheduleErrors.splice(index, 1);
         },
         async saveSchedule() {
-
             if (!this.selectedDevice) return;
 
             let hasError = false;
@@ -191,7 +190,7 @@ export default {
         sortSchedule() {
             if (Array.isArray(this.scheduleForm)) {
                 // Định nghĩa thứ tự các ngày trong tuần (dùng số và CN cho Chủ nhật)
-                const dayOrder = ['CN', '2', '3', '4', '5', '6', '7'];
+                const dayOrder = ['1', '2', '3', '4', '5', '6', '7'];
 
                 this.scheduleForm.sort((a, b) => {
                     // So sánh ngày trong tuần trước

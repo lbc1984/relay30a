@@ -42,7 +42,7 @@
             <p><b>Status:</b> {{ device.status }}</p>
           </template>
 
-          <template v-slot:actions v-if="device.status == 'offline'">
+          <template v-slot:actions v-if="device.status != 'aoffline'">
             <div class="d-flex justify-space-between w-100">
               <v-btn class="mt-2" @click="toggleDevice(device)" variant="tonal">
                 {{ device.switch === "1" ? "Turn On" : "Turn Off" }}
