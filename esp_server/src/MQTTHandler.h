@@ -3,7 +3,7 @@
 
 #include <PubSubClient.h>
 
-extern PubSubClient client;
+extern PubSubClient client_mqtt;
 extern String topic;
 
 void mqtt_setup();
