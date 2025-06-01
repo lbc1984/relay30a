@@ -67,7 +67,7 @@ export default {
             scheduleForm: [{ day: '', time: '', action: 'ON', timeMenu: false }],
             deviceSchedules: {},
             scheduleErrors: [],
-            daysOfWeek: ['1', '2', '3', '4', '5', '6', '7'],
+            daysOfWeek: ['All' ,'CN', '2', '3', '4', '5', '6', '7'],
             snackbar: false,
             message: "",
         };
