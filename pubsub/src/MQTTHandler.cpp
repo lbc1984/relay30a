@@ -3,6 +3,8 @@
 #include "ButtonHandler.h"
 #include <Arduino_JSON.h>
 
+const String GROUP_NAME = "paulatim";
+
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
@@ -62,7 +64,6 @@ void reconnect()
     if (client.connect(mac_address.c_str(), user.c_str(), pass.c_str(), topic_status.c_str(), 1, true, "offline"))
     {
       Serial.println("Kết nối thành công!");
-      // client.subscribe(topic_status.c_str());
       client.subscribe(topic_switch.c_str());
       client.subscribe(topic_reset.c_str());
       client.publish(topic_status.c_str(), "online", true);
@@ -114,6 +115,7 @@ String fetchData()
   clientSecure.connect(url_lambda, 443);
   httpClient.begin(clientSecure, url_lambda);
   httpClient.addHeader("X-Device-MAC", mac_address);
+  httpClient.addHeader("X-Group-Name", GROUP_NAME);
 
   int httpCode = httpClient.GET();
   String payload = "";
