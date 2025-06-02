@@ -66,8 +66,10 @@ void reconnect()
       Serial.println("Kết nối thành công!");
       client.subscribe(topic_switch.c_str());
       client.subscribe(topic_reset.c_str());
-      client.publish(topic_status.c_str(), "online", true);
+      client.subscribe(topic_name.c_str());
+      
       client.publish(topic_name.c_str(), deviceName.c_str());
+      client.publish(topic_status.c_str(), "online", true);
       count_reconnect = 0;
     }
     else
@@ -103,11 +105,10 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     wifiManager.resetSettings();
     ESP.restart();
   }
-}
-
-void pub_switch(String state)
-{
-  client.publish(topic_switch.c_str(), state.c_str());
+  else if (String(topic) == topic_name)
+  {
+    saveDeviceName(message);
+  }
 }
 
 String fetchData()
