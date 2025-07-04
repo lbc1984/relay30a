@@ -35,28 +35,28 @@
 
           <template v-slot:subtitle>
             <v-text-field density="compact" v-model="device.name" @blur="saveName(device)"
-              @focus="name_old = device.name" label="Số phòng"></v-text-field>
+              label="Số phòng"></v-text-field>
           </template>
 
           <template v-slot:text>
             <p><b>Status:</b> {{ device.status }}</p>
           </template>
 
-          <template v-slot:actions v-if="device.status != 'aoffline'">
+          <template v-slot:actions v-if="device.status != 'offline'">
             <div class="d-flex justify-space-between w-100">
               <v-btn class="mt-2" @click="toggleDevice(device)" variant="tonal">
                 {{ device.switch === "1" ? "Turn On" : "Turn Off" }}
               </v-btn>
-              <v-btn class="mt-2" variant="tonal" @click="openScheduleDialog(device)">
+              <!-- <v-btn class="mt-2" variant="tonal" @click="openScheduleDialog(device)">
                 Timer
-              </v-btn>
+              </v-btn> -->
             </div>
           </template>
         </v-card>
       </v-col>
     </v-row>
 
-    <DialogTimer :device="device" :show="show_schedule" @close="closeScheduleDialog" />
+    <!-- <DialogTimer :device="device" :show="show_schedule" @close="closeScheduleDialog" /> -->
   </v-container>
 </template>
 
@@ -66,7 +66,8 @@
 import mqtt from "mqtt";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import DialogTimer from "./DialogTimer.vue";
+// import DialogTimer from "./DialogTimer.vue";
+import { db, doc, getDoc, updateDoc } from '../firebase'
 
 export default {
   name: "Dashboard",
@@ -76,15 +77,14 @@ export default {
       server_status: "Disconnected",
       devices: [],
       client: null,
-      name_old: "",
       is_loading: true,
       device: null,
       show_schedule: false,
     };
   },
-  components: {
-    DialogTimer,
-  },
+  // components: {
+  //   DialogTimer,
+  // },
   methods: {
     connectToMQTT(url, username, password) {
       let port = 8884;
@@ -102,12 +102,12 @@ export default {
         this.client.subscribe("device/+/switch");
       });
 
-      this.client.on("message", (topic, message) => {
-        this.handleMessage(topic, message.toString());
+      this.client.on("message", async (topic, message) => {
+        await this.handleMessage(topic, message.toString());
       });
     },
 
-    handleMessage(topic, message) {
+    async handleMessage(topic, message) {
       const topic_split = topic.split("/");
       const macAddress = topic_split[1];
       const type = topic_split[2];
@@ -116,7 +116,11 @@ export default {
       if (item) {
         if (type == "status") item.status = message;
         else if (type == "switch") item.switch = message;
-        else if (type == "name") item.name = message;
+        else if (type == "name" && message.length > 0) {
+          item.name = message;
+          await this.saveDeviceToFirestore(item);
+          item.name = message;
+        }
       } else {
         const device = {
           mac: macAddress,
@@ -126,6 +130,16 @@ export default {
         };
 
         this.devices.push(device);
+
+        let deviceFromFirestore = await this.getDeviceFromFirestore(macAddress);
+        
+        if (deviceFromFirestore == undefined) {          
+          await this.saveDeviceToFirestore(device);
+        }
+        else {                    
+          this.saveName(deviceFromFirestore);
+        }
+
       }
     },
 
@@ -139,8 +153,7 @@ export default {
         retain: true,
       });
     },
-    saveName(device) {
-      if (this.name_old != device.name)
+    saveName(device) {        
         this.client.publish(`device/${device.mac}/name`, device.name, {
           qos: 1,
           retain: true,
@@ -153,6 +166,40 @@ export default {
     closeScheduleDialog() {
       this.show_schedule = false;
       this.device = null;
+    },
+    async saveDeviceToFirestore(device) {
+      const userRef = doc(db, "paulatim", "devices");
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        console.error("User document not found");
+        return;
+      }
+
+      let devices = userSnap.data().devices || [];
+      const index = devices.findIndex(d => d.mac === device.mac);
+
+      if (index !== -1) {
+        devices[index].mac = device.mac;
+        devices[index].name = device.name;
+      } else {
+        devices.push(
+          { mac: device.mac, name: device.name }
+        );
+      }
+      await updateDoc(userRef, { devices });
+    },
+    async getDeviceFromFirestore(mac) {
+      const userRef = doc(db, "paulatim", "devices");
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        console.error("User document not found");
+        return null;
+      }
+
+      let devices = userSnap.data().devices || [];
+      return devices.find((d) => d.mac === mac);
     },
   },
   mounted() {
